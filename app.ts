@@ -3,15 +3,15 @@ import { GET, Controller, Inject, Service, Middleware} from './src'
 
 @Controller('')
 class Test {
-    @Middleware((ctx,next) => {
-        console.log('qwe')
-        next()
-    })
-    // @GET('test')
+    // @Middleware((ctx,next) => {
+    //     console.log('qwe')
+    //     next()
+    // })
+    @GET('test')
     match(ctx,next, @Inject('Srv1') srv1) {
-        console.log('fuck')
         ctx.body = "ok"
-        console.log(srv1.value)
+        console.log('ok')
+        // console.log('fuck:' + srv1.value)
     }
 }
 
@@ -25,7 +25,7 @@ class Srv1 {
 
 @Service()
 class Srv2 {
-    constructor(@Inject('Srv1') srv1) {
+    constructor(@Inject() srv1:Srv1) {
         console.log('Srv2 build ', 'srv1.value = ', srv1.value)
     }
 

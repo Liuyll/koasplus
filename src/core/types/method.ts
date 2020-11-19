@@ -1,5 +1,4 @@
 import { RouteHandler } from "./route";
-
 export interface State {
     routes: RouteHandler[]
 }
@@ -20,8 +19,13 @@ export interface IConstructorMetadata extends IMethodMetadata{
     dependency ?: IParamsDep
 }
 
+export interface IInjectOptions {
+    name: string
+    new: boolean
+}
+
 export interface IParamsDep {
-    [index: number]: Object
+    [index: number]: IInjectOptions
 }
 
 export interface IParamsDepType {

@@ -1,7 +1,9 @@
+import { handlePathToRoute } from './../tools/index';
 import { classMetadata } from './../../types/class';
 import { addPayloadToMetadata } from '../tools'
 
 export function Controller(path: string):ClassDecorator {
+    path = handlePathToRoute(path)
     return (target:Function) => addBaseControllerMetadata(target, path)
 }
 

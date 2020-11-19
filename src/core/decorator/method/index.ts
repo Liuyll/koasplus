@@ -1,5 +1,5 @@
 import { isArray } from './../tools';
-import { IDependencyOrHandlerMetadata } from './../../types/method';
+import { IDependencyOrHandlerMetadata, IInjectOptions } from './../../types/method';
 import { Context, Middleware as IMiddleware } from 'koa'
 import { classMetadata } from './../../types/class';
 import { HttpVerb } from '../../types'
@@ -19,22 +19,33 @@ interface IMiddlewareDecorator {
     (middleware: IMiddleware | IMiddleware[]): MethodDecorator
 }
 
+
 const Middleware:IMiddlewareDecorator = function(middlewares: IMiddleware | IMiddleware[]): MethodDecorator{
     if(!isArray(middlewares)) middlewares = [middlewares]
     return addMiddlewareInRoute(middlewares)
 }
 
-const Inject:IParamDecorator = function(name: string):ParameterDecorator {
+const Inject:IParamDecorator = function(args: string | IInjectOptions):ParameterDecorator {
+    if(typeof args === 'string' || args == undefined) args = {name: args} as any as IInjectOptions
+
+    let name = args.name
     return (target:Object, propertyKey:string, index: number) => {
         // constructor
         // priority than @Service, be case to cover by @Service decorator
-
+        if(!name) {
+            const paramsTypes:Function[] = getMethodParamTypes(target)
+            const type = paramsTypes[index]
+            name = type.prototype.constructor.name
+            const badCase = ['Object', 'Array', 'String', 'Number', 'Symbol', 'Function', 'BigInt']
+            if(badCase.indexOf(name) != -1) throw new Error('Error: you must provide Inject name or type, but you did not provide anyone.')
+        }
         if(!propertyKey) {
             addDepNamesToConstructorMetadata(target, name)
+            // TODO: types是否需要保留
             addDepTypesToConstructorMetadata(target)
         }
         else {
-            addDepNamesToMethodMetadata(target, propertyKey, String(index), name)
+            addDepNamesToMethodMetadata(target, propertyKey, String(index), args as IInjectOptions)
             addDepTypesToMethodMetadata(target, propertyKey, String(index))
         }
     }
@@ -71,8 +82,8 @@ function RoutePathDecorator(httpVerb: HttpVerb, basepath: string | RegExp): Meth
     }
 }
 
-function addDepNamesToMethodMetadata(target:Object, propertyKey:string, index:string, name: string) {
-    addPayloadToMetadata(target, null , 'paramsDep', {[index]: name}, methodMetadata, propertyKey, 'object')
+function addDepNamesToMethodMetadata(target:Object, propertyKey:string, index:string, option: IInjectOptions) {
+    addPayloadToMetadata(target, null , 'paramsDep', {[index]: option}, methodMetadata, propertyKey, 'object')
 }
 
 function addDepTypesToMethodMetadata(target:Object, propertyKey:string, index:string) {
@@ -102,12 +113,11 @@ function wrapControllerInContainer(target: Object, handler: string, desc: TypedP
         const paramList = [ctx, next]
         if(metadata.paramsDep) {
             const deps = Object.entries(metadata.paramsDep)
-            deps.forEach(([depIndex,depName]) => {
-                paramList[depIndex] = ctx._app.getDepStorage(depName)
+            deps.forEach(([depIndex,depOption]) => {
+                paramList[depIndex] = ctx._app.getDepStorage(depOption.name)
             })      
         }
         const _handler = () => oldHandler.apply(target, paramList)
-        console.log(metadata)
         if(metadata.middlewares) {
             compose(metadata.middlewares)(ctx, _handler)()
         }

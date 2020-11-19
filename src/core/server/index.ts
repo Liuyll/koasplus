@@ -35,7 +35,9 @@ export default class Koas {
     private routeTable = []
     private depStorage:IDepStorage = {}
     private depGraph: IDepGraph = {}
+    // follow name -> master name 
     private depMapTable:IDepMapTable = {}
+    // name -> type
     private depKVMap: IDepKVMap = {}
 
     constructor() {
@@ -81,6 +83,12 @@ export default class Koas {
 
     public registerService(target: IService) {
         this.addServiceToDepGraph(target)
+    }
+
+    public getTypeFromName(name: string) {
+        if(this.depKVMap[name]) return this.depKVMap[name]
+        name = this.depMapTable[name]
+        return this.depKVMap[name]
     }
 
     private autoRegsiterController(router:Router) {

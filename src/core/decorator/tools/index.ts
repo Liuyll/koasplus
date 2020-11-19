@@ -35,3 +35,13 @@ export const isPlainObject = (object: unknown):boolean => {
 export const isArray = <T>(object: unknown): object is Array<T> => {
     return Array.isArray(object) && Object.prototype.toString.call(object) === "[object Array]"
 }
+
+export const handlePathToRoute = (path: string | RegExp | undefined) => {
+    if(!path) path = ""
+    // \^api\ -> \/api\
+    else if(path instanceof RegExp) {
+        path = path.toString()
+        if(path.startsWith('^')) path = path[0] + path.slice(1)
+    } 
+    return path
+}

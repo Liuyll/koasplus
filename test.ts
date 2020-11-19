@@ -7,9 +7,8 @@ function get(target, key) {
 }
 
 function Dep(target) {
-    console.log(target)
     const t = Reflect.getOwnMetadata("design:paramtypes", target)
-    console.log(t)
+    console.log(t[0].prototype.constructor.name)
 }
 
 @Dep
