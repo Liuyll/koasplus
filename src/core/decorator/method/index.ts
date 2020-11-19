@@ -16,12 +16,12 @@ interface IParamDecorator {
 }
 
 interface IMiddlewareDecorator {
-    (middleware: IMiddleware | IMiddleware[]): void
+    (middleware: IMiddleware | IMiddleware[]): MethodDecorator
 }
 
-const Middleware:IMiddlewareDecorator = function(middlewares: IMiddleware | IMiddleware[]): void {
+const Middleware:IMiddlewareDecorator = function(middlewares: IMiddleware | IMiddleware[]): MethodDecorator{
     if(!isArray(middlewares)) middlewares = [middlewares]
-    addMiddlewareInRoute(middlewares)
+    return addMiddlewareInRoute(middlewares)
 }
 
 const Inject:IParamDecorator = function(name: string):ParameterDecorator {
@@ -106,10 +106,12 @@ function wrapControllerInContainer(target: Object, handler: string, desc: TypedP
                 paramList[depIndex] = ctx._app.getDepStorage(depName)
             })      
         }
+        const _handler = () => oldHandler.apply(target, paramList)
+        console.log(metadata)
         if(metadata.middlewares) {
-            compose(metadata.middlewares)(ctx, next)()
+            compose(metadata.middlewares)(ctx, _handler)()
         }
-        oldHandler.apply(target, paramList)
+        else _handler()
     }
 }
 

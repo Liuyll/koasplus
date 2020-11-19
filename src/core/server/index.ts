@@ -140,7 +140,7 @@ export default class Koas {
         handlers.forEach(handler => {
             let metadata: IHandlerMetadata
             if((metadata = Reflect.getMetadata(methodMetadata,controller.prototype,handler))) {
-                metadata.routes.forEach(route => {
+                metadata.routes?.forEach(route => {
                     let { verb, path } = route
                     if(!verb) verb = baseVerb as any
                     routes.push({

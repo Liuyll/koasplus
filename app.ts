@@ -1,9 +1,13 @@
 import Koas from './src/core/server'
-import { GET, Controller, Inject, Service} from './src'
+import { GET, Controller, Inject, Service, Middleware} from './src'
 
 @Controller('')
 class Test {
-    @GET('test')
+    @Middleware((ctx,next) => {
+        console.log('qwe')
+        next()
+    })
+    // @GET('test')
     match(ctx,next, @Inject('Srv1') srv1) {
         console.log('fuck')
         ctx.body = "ok"
