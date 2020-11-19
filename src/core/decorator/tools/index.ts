@@ -1,22 +1,22 @@
-type AppendType = 'cover' | 'array' | 'object'
+export type AppendType = 'cover' | 'array' | 'object'
 
-export function addPayloadToMetadata(target:Function | Object, key:string, payloadKey: string, payload: any, metadataKey: string | symbol, propertyKey ?: string | symbol, appendType: AppendType = 'cover') {
+export function addPayloadToMetadata(target:Function | Object, innerKey:string, payloadKey: string, payload: any, metadataKey: string | symbol, propertyKey ?: string | symbol, appendType: AppendType = 'cover') {
     let oldMetadata = propertyKey ? Reflect.getOwnMetadata(metadataKey, target, propertyKey) : Reflect.getOwnMetadata(metadataKey, target)
     if(!oldMetadata) oldMetadata = {}
     const metadata = { ...oldMetadata }    
-    if(!key) {
+    if(!innerKey) {
         if(appendType === 'cover') metadata[payloadKey] = payload
         if(appendType === 'array') metadata[payloadKey] = [...iterable(metadata[payloadKey], 'array'), payload]
         if(appendType === 'object') metadata[payloadKey] = {...metadata[payloadKey], ...payload}
     }
     else {
-        if(appendType === 'cover') metadata[key] = { [payloadKey]: payload }
+        if(appendType === 'cover') metadata[innerKey] = { [payloadKey]: payload }
         if(appendType === 'array') {
-            const oldPayload = metadata[key] && metadata[key][payloadKey]
-            metadata[key] = { [payloadKey]: [...iterable(oldPayload,'array'), payload]}
+            const oldPayload = metadata[innerKey] && metadata[innerKey][payloadKey]
+            metadata[innerKey] = { [payloadKey]: [...iterable(oldPayload,'array'), payload]}
         }
         if(appendType === 'object') {
-            const oldPayload = metadata[key] && metadata[key][payloadKey]
+            const oldPayload = metadata[innerKey] && metadata[innerKey][payloadKey]
             metadata[payloadKey] = {...oldPayload, ...payload }
         }
     }
@@ -27,4 +27,11 @@ export function addPayloadToMetadata(target:Function | Object, key:string, paylo
 const iterable = (target:Object, type: Exclude<AppendType, 'cover'>):any=> {
     if(type === 'object') return target || {}
     if(type === 'array') return target || []
+}
+
+export const isPlainObject = (object: unknown):boolean => {
+    return Object.prototype.toString.call(object) === "[object Object]"
+}
+export const isArray = <T>(object: unknown): object is Array<T> => {
+    return Array.isArray(object) && Object.prototype.toString.call(object) === "[object Array]"
 }

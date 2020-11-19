@@ -4,18 +4,27 @@ export interface State {
     routes: RouteHandler[]
 }
 
+export type IDependencyOrHandlerMetadata = IHandlerMetadata & { routes ?: RouteHandler[]}
+
 export interface IMethodMetadata {
     paramsDep ?: IParamsDep
+    paramsDepType ?: IParamsDepType
 }
 
-export interface IHandlerMedatata extends IMethodMetadata {
+export interface IHandlerMetadata extends IMethodMetadata {
     routes : RouteHandler[]
+    middlewares ?: []
 }
 
-export interface IContructorMetadata extends IMethodMetadata{
+export interface IConstructorMetadata extends IMethodMetadata{
     dependency ?: IParamsDep
 }
 
 export interface IParamsDep {
     [index: number]: Object
 }
+
+export interface IParamsDepType {
+    [index: number]: Function
+}
+

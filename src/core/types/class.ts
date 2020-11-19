@@ -6,24 +6,29 @@ export interface IControllerMetadata {
     verb ?: string | string[]
 }   
 
-export interface IDependencyMetadata extends IConsturctor{
-    dependency: string[]
+export type DependencyNames = string[]
+export type DependencyTypes = Function[]
+
+export interface IDependencyMetadata extends IConstructor{
+    dependency ?: DependencyNames
+    dependencyType ?: DependencyTypes
 } 
 
 export interface IServiceMetadata {
     names : string[]
 }
 
-export interface IConsturctor {
+export interface IConstructor {
     new (...params: any[]):any 
 }
-export interface IController extends IConsturctor{}
+
+export interface IController extends IConstructor{}
 
 export interface IService extends IController {}
 
 export interface IDependency extends IController {}
 
-export const classMetadata = Symbol('class-matadata-key')
+export const classMetadata = Symbol('class-metadata-key')
 
 export interface IClassMetadata {
     controller ?: IControllerMetadata

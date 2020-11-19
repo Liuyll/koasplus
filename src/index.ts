@@ -1,6 +1,10 @@
 export {
     GET,
-    Inject
+    POST,
+    PUT,
+    DELETE,
+    Inject,
+    Middleware,
 } from './core/decorator/method'
 
 export {

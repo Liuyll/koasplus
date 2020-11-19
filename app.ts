@@ -4,8 +4,10 @@ import { GET, Controller, Inject, Service} from './src'
 @Controller('')
 class Test {
     @GET('test')
-    match(ctx) {
+    match(ctx,next, @Inject('Srv1') srv1) {
+        console.log('fuck')
         ctx.body = "ok"
+        console.log(srv1.value)
     }
 }
 

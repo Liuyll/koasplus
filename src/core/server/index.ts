@@ -1,4 +1,6 @@
-import { IHandlerMedatata } from './../types/method';
+import { isPlainObject, isArray } from './../decorator/tools';
+import { methodMetadata } from './../decorator/method';
+import { IHandlerMetadata } from './../types/method';
 import { classMetadata, IControllerMetadata, IController, IClassMetadata, IDependency, IService, IDependencyMetadata } from './../types';
 import Koa, { Middleware } from 'koa'
 import Router from './router/router'
@@ -41,7 +43,7 @@ export default class Koas {
         this.app = app
         this.app.context._app = this
         this.router = new Router()
-        this.getAutoRegisterdService()
+        this.getAutoRegisteredService()
         app.use(this.getRouter())
     }
 
@@ -58,13 +60,14 @@ export default class Koas {
         return this.router
     }
 
-    public debugRoute() {
-        return this.routeTable
+    public debug(propertyKey: string) {
+        return this[propertyKey]
     }
 
     public getDepStorage(key: string) {
         return this.depStorage[key]
     }
+
     private getRouter():Middleware {
         const router = this.router
         this.autoRegsiterController(router)
@@ -104,9 +107,7 @@ export default class Koas {
         if(isPlainObject(dep)) dep = [dep]
         else {
             const newDep = []
-            for(let key in dep) {
-                newDep.push(dep[key])
-            }
+            for(let key in dep) newDep.push(dep[key])
             dep = newDep
         }
         return dep
@@ -137,8 +138,8 @@ export default class Koas {
         const { basepath,verb: baseVerb } = baseMetadata
         const handlers = Object.getOwnPropertyNames(controller.prototype)
         handlers.forEach(handler => {
-            let metadata: IHandlerMedatata
-            if((metadata = Reflect.getMetadata(classMetadata,controller.prototype,handler))) {
+            let metadata: IHandlerMetadata
+            if((metadata = Reflect.getMetadata(methodMetadata,controller.prototype,handler))) {
                 metadata.routes.forEach(route => {
                     let { verb, path } = route
                     if(!verb) verb = baseVerb as any
@@ -225,7 +226,8 @@ export default class Koas {
             this.depKVMap[masterName] = target
         }
     }
-    private getAutoRegisterdService() {
+
+    private getAutoRegisteredService() {
         const unFiltedServicesList = glob.sync('./service/**/.ts')
         unFiltedServicesList.forEach(unFiltedServicePath => {
             let unFiltedServices = require(unFiltedServicePath)
@@ -257,10 +259,4 @@ const joinRoutePath = (basepath: string, path: string) => {
     if(path.startsWith('/')) path = path.slice(1)
     if(basepath == '/') basepath = ''
     return basepath + '/' + path
-}
-const isPlainObject = (object: unknown):boolean => {
-    return Object.prototype.toString.call(object) === "[object Object]"
-}
-const isArray = <T>(object: unknown): object is Array<T> => {
-    return Array.isArray(object) && Object.prototype.toString.call(object) === "[object Array]"
 }

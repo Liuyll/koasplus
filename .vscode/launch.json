@@ -17,7 +17,8 @@
             "cwd": "${workspaceRoot}",
             "protocol": "inspector",
             "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "internalConsoleOptions": "neverOpen",
+            "runtimeExecutable": "/Users/liuyl/.nvm/versions/node/v12.9.1/bin/node"
         }
     ]
 }
