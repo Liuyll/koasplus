@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+      "lib": ["es2015", "dom"],
+      "target": "ES6",
+      "declaration": true,
+      "importHelpers": false,
+      "esModuleInterop": true,
+      "noUnusedLocals": false,
+      "sourceMap": true,
+      "declarationMap": true,
+      "noEmit": true,
+      "moduleResolution": "node",
+      "module": "commonjs",
+      "allowJs": true,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "types": [
+        "reflect-metadata"
+      ]
+    }
+}
+  
