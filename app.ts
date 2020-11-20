@@ -1,23 +1,38 @@
 import Koas from './src/core/server'
 import { GET, Controller, Inject, Service, Middleware, Params} from './src'
 
+@Service()
+class Srv4 {
+    public value = 10
+}
+
 @Controller('')
 class Test {
+    // @Inject()
+    // public a: Srv4
+
     @Middleware((ctx,next) => {
         console.log('middleware')
         next()
     })
     @GET('test/:id')
-    match(ctx,next, @Inject({name: 'Srv1', new: true}) dep, @Params('id') id) {
-        ctx.body = `id:${id},depValue:${dep.value}`
+    match(ctx,next, @Inject({name: 'Srv1'}) dep, @Params('id') id) {
+        ctx.body = `id:${id},depValue:${dep.value},propertyVal:${dep.print()}`
         next()
     }
 }
 
 @Service()
 class Srv1 {
+    @Inject()
+    public a: Srv4
+
     constructor() {
         console.log('Srv1 build')
+    }
+
+    print() {
+        return this.a.value
     }
     value = 10
 }
@@ -27,6 +42,8 @@ class Srv2 {
     constructor(@Inject() srv1:Srv1) {
         console.log('Srv2 build ', 'srv1.value = ', srv1.value)
     }
+
+    public value = 10
 
     // test(@Inject('Srv1') srv1) {}
 }
@@ -45,5 +62,6 @@ koas.registerController(Test)
 koas.registerService(Srv1)
 koas.registerService(Srv2)
 koas.registerService(Srv3)
+koas.registerService(Srv4)
 koas.start(8080)
 console.log('success')

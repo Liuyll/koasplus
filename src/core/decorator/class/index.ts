@@ -7,6 +7,10 @@ export function Controller(path: string):ClassDecorator {
     return (target:Function) => addBaseControllerMetadata(target, path)
 }
 
+export function StaticProvider(target:Function) {
+    addPayloadToClassMetadata(target, null, 'staticProvider', true)
+}
+
 export function Service(name?: string):ClassDecorator {
     return (target:Function) => addClassToServiceStorage(target, name)
 }
@@ -19,8 +23,8 @@ export function addControllerOptionMetadata(target:Function, options: object) {
     addPayloadToClassMetadata(target, 'controller', 'options', options)
 }
 
-const addPayloadToClassMetadata = (target:Function, key:string, payloadKey: string, payload: any) => {
-    addPayloadToMetadata(target, key, payloadKey, payload, classMetadata)
+const addPayloadToClassMetadata = (target:Function, innerKey:string, payloadKey: string, payload: any) => {
+    addPayloadToMetadata(target, innerKey, payloadKey, payload, classMetadata)
 }
 
 function addClassToServiceStorage(target:Function, name:string) {

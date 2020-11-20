@@ -3,7 +3,8 @@ import { methodMetadata } from './../decorator/method';
 import { IHandlerMetadata } from './../types/method';
 import { classMetadata, IControllerMetadata, IController, IClassMetadata, IDependency, IService, IDependencyMetadata } from './../types';
 import Koa, { Middleware } from 'koa'
-import Router from './router/router'
+import { classPrototypeMetadata, IInjectedPropertyPayload } from '../decorator/param'
+import Router from 'koa-router'
 import glob from 'glob'
 import 'reflect-metadata'
 
@@ -83,6 +84,10 @@ export default class Koas {
 
     public registerService(target: IService) {
         this.addServiceToDepGraph(target)
+    }
+
+    public registerStaticProvider(name, target: any) {
+        this.depStorage[name] = target
     }
 
     public getTypeFromName(name: string) {
@@ -211,18 +216,30 @@ export default class Koas {
 `Error: must be register dependency first beforehand.
     please check  whether exist circular dependency or did't register dependency.\n`)
         sort.forEach(srv => {
-            this.depStorage[srv] = this.makeDependency(srv)
+            this.depStorage[srv] = this.makeDependency(srv, false)
         })
+        Object.values(this.depStorage).forEach(dep => this.injectProperties(dep))
+
     }
     
-    public makeDependency(srv: string) {
+    public makeDependency(srv: string, injectProperty:boolean = true) {
         const Srv = this.depKVMap[srv]
         const deps = this.depGraph[srv]
         const Deps = deps.reduce((sumDeps, dep) => {
             sumDeps.push(this.depStorage[dep])
             return sumDeps
         },[])
-        return new Srv(...Deps)
+        const dependency = new Srv(...Deps)
+        if(injectProperty) this.injectProperties(dependency)
+        return dependency
+    }
+
+    public injectProperties(target: Object) {
+        const needInjectProperties:IInjectedPropertyPayload = Reflect.getMetadata(classPrototypeMetadata, target)?.injectedProperty
+        if(!needInjectProperties) return
+        Object.entries(needInjectProperties).forEach(([name, typename]) => {
+            target[name] = this.depStorage[typename]
+        })
     }
 
     private addServiceToDepGraph(target: IService) {
