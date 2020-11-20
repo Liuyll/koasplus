@@ -1,17 +1,16 @@
 import Koas from './src/core/server'
-import { GET, Controller, Inject, Service, Middleware} from './src'
+import { GET, Controller, Inject, Service, Middleware, Params} from './src'
 
 @Controller('')
 class Test {
-    // @Middleware((ctx,next) => {
-    //     console.log('qwe')
-    //     next()
-    // })
-    @GET('test')
-    match(ctx,next, @Inject('Srv1') srv1) {
-        ctx.body = "ok"
-        console.log('ok')
-        // console.log('fuck:' + srv1.value)
+    @Middleware((ctx,next) => {
+        console.log('middleware')
+        next()
+    })
+    @GET('test/:id')
+    match(ctx,next, @Inject({name: 'Srv1', new: true}) dep, @Params('id') id) {
+        ctx.body = `id:${id},depValue:${dep.value}`
+        next()
     }
 }
 

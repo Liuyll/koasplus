@@ -6,13 +6,9 @@ import { HttpVerb } from '../../types'
 import { addPayloadToMetadata, AppendType } from '../tools'
 
 export const methodMetadata = Symbol('methodMetadata')
-
+const requestSymbol = Symbol('request-dep-metadata')
 interface IRouterDecorator {
     (path: string): MethodDecorator
-}
-
-interface IParamDecorator {
-    (...params: any[]): ParameterDecorator 
 }
 
 interface IMiddlewareDecorator {
@@ -23,32 +19,6 @@ interface IMiddlewareDecorator {
 const Middleware:IMiddlewareDecorator = function(middlewares: IMiddleware | IMiddleware[]): MethodDecorator{
     if(!isArray(middlewares)) middlewares = [middlewares]
     return addMiddlewareInRoute(middlewares)
-}
-
-const Inject:IParamDecorator = function(args: string | IInjectOptions):ParameterDecorator {
-    if(typeof args === 'string' || args == undefined) args = {name: args} as any as IInjectOptions
-
-    let name = args.name
-    return (target:Object, propertyKey:string, index: number) => {
-        // constructor
-        // priority than @Service, be case to cover by @Service decorator
-        if(!name) {
-            const paramsTypes:Function[] = getMethodParamTypes(target)
-            const type = paramsTypes[index]
-            name = type.prototype.constructor.name
-            const badCase = ['Object', 'Array', 'String', 'Number', 'Symbol', 'Function', 'BigInt']
-            if(badCase.indexOf(name) != -1) throw new Error('Error: you must provide Inject name or type, but you did not provide anyone.')
-        }
-        if(!propertyKey) {
-            addDepNamesToConstructorMetadata(target, name)
-            // TODO: types是否需要保留
-            addDepTypesToConstructorMetadata(target)
-        }
-        else {
-            addDepNamesToMethodMetadata(target, propertyKey, String(index), args as IInjectOptions)
-            addDepTypesToMethodMetadata(target, propertyKey, String(index))
-        }
-    }
 }
 
 const GET:IRouterDecorator = function(path: string): MethodDecorator {
@@ -83,7 +53,7 @@ function RoutePathDecorator(httpVerb: HttpVerb, basepath: string | RegExp): Meth
 }
 
 function addDepNamesToMethodMetadata(target:Object, propertyKey:string, index:string, option: IInjectOptions) {
-    addPayloadToMetadata(target, null , 'paramsDep', {[index]: option}, methodMetadata, propertyKey, 'object')
+    addPayloadToMetadata(target, null ,'paramsDep', {[index]: option}, methodMetadata, propertyKey, 'object')
 }
 
 function addDepTypesToMethodMetadata(target:Object, propertyKey:string, index:string) {
@@ -112,9 +82,18 @@ function wrapControllerInContainer(target: Object, handler: string, desc: TypedP
         const metadata:IDependencyOrHandlerMetadata = getPayloadFromMethodMetadata(target, handler)
         const paramList = [ctx, next]
         if(metadata.paramsDep) {
-            const deps = Object.entries(metadata.paramsDep)
+            const deps:[string, IInjectOptions][] = Object.entries(metadata.paramsDep)
             deps.forEach(([depIndex,depOption]) => {
-                paramList[depIndex] = ctx._app.getDepStorage(depOption.name)
+                if(depOption.type === 'provide') {
+                    if(!depOption.new) paramList[depIndex] = ctx._app.getDepStorage(depOption.name)
+                    else if(depOption.new === true) paramList[depIndex] = ctx._app.makeDependency(depOption.name)
+                    else if(depOption.new === 'request') {
+                        let dep:Object
+                        if((dep = (ctx as any)[requestSymbol])) return dep
+                        return (ctx as any)[requestSymbol] = ctx._app.makeDependency(depOption.name)
+                    }
+                }
+                else if(depOption.type === 'param') paramList[depIndex] = ctx.params[depOption.name]
             })      
         }
         const _handler = () => oldHandler.apply(target, paramList)
@@ -147,6 +126,14 @@ export {
     POST,
     PUT,
     DELETE,
-    Inject,
     Middleware
+}
+
+export {
+    addDepNamesToMethodMetadata,
+    addDepTypesToMethodMetadata,
+    addDepNamesToConstructorMetadata,
+    addDepTypesToConstructorMetadata,
+    getMethodParamTypes,
+    addPayloadToMethodMetadata,
 }

@@ -207,18 +207,24 @@ export default class Koas {
         }
         
         const sort = toposort()
-        if(!sort) throw new Error("Error: must be register dependency first beforehand.")
+        if(!sort) throw new Error(
+`Error: must be register dependency first beforehand.
+    please check  whether exist circular dependency or did't register dependency.\n`)
         sort.forEach(srv => {
-            const Srv = this.depKVMap[srv]
-            const deps = this.depGraph[srv]
-            const Deps = deps.reduce((sumDeps, dep) => {
-                sumDeps.push(this.depStorage[dep])
-                return sumDeps
-            },[])
-            this.depStorage[srv] = new Srv(...Deps)
+            this.depStorage[srv] = this.makeDependency(srv)
         })
     }
     
+    public makeDependency(srv: string) {
+        const Srv = this.depKVMap[srv]
+        const deps = this.depGraph[srv]
+        const Deps = deps.reduce((sumDeps, dep) => {
+            sumDeps.push(this.depStorage[dep])
+            return sumDeps
+        },[])
+        return new Srv(...Deps)
+    }
+
     private addServiceToDepGraph(target: IService) {
         let metadata:IClassMetadata
         if((metadata = Reflect.getOwnMetadata(classMetadata, target))) {

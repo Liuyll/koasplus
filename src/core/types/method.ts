@@ -19,9 +19,12 @@ export interface IConstructorMetadata extends IMethodMetadata{
     dependency ?: IParamsDep
 }
 
+export type IInjectType = 'provide' | 'param'
 export interface IInjectOptions {
-    name: string
-    new: boolean
+    name ?: string
+    // true | request | singleton
+    new ?: boolean | string
+    type ?: IInjectType
 }
 
 export interface IParamsDep {
