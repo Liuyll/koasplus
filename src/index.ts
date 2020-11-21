@@ -4,11 +4,14 @@ export {
     PUT,
     DELETE,
     Middleware,
+    addRouteDecorator
 } from './core/decorator/method'
 
 export {
     Controller,
-    Service
+    Service,
+    Dao,
+    Provider,
 } from './core/decorator/class'
 
 export {

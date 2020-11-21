@@ -1,34 +1,32 @@
 import { isPlainObject, isArray } from './../decorator/tools';
 import { methodMetadata } from './../decorator/method';
 import { IHandlerMetadata } from './../types/method';
-import { classMetadata, IControllerMetadata, IController, IClassMetadata, IDependency, IService, IDependencyMetadata } from './../types';
+import { classMetadata, IControllerMetadata, IController, IClassMetadata, IService, IDependencyMetadata, IProvider, IDao, ProviderType } from './../types';
 import Koa, { Middleware } from 'koa'
 import { classPrototypeMetadata, IInjectedPropertyPayload } from '../decorator/param'
 import Router from 'koa-router'
 import glob from 'glob'
 import 'reflect-metadata'
+import { Provider } from '../decorator/class';
 
 interface IRoutePayload {
     path: string,
     verb: string | string[],
     handler: Function
 }
-
 interface IDepStorage {
     [key:string]: Object
 }
-
 interface IDepGraph {
     [key:string]: string[]
 }
-
 interface IDepMapTable {
     [key:string]: string
 }
-
 interface IDepKVMap {
-    [key:string]: IDependency
+    [key:string]: IProvider
 }
+type AutoRegisterHandler = (provider:IProvider) => void
 
 export default class Koas {
     private app: Koa
@@ -46,7 +44,10 @@ export default class Koas {
         this.app = app
         this.app.context._app = this
         this.router = new Router()
-        this.getAutoRegisteredService()
+        this.autoRegisterController(this.router)
+        this.autoRegisterService()
+        this.autoRegisterDao()
+
         app.use(this.getRouter())
     }
 
@@ -72,9 +73,7 @@ export default class Koas {
     }
 
     private getRouter():Middleware {
-        const router = this.router
-        this.autoRegsiterController(router)
-        return router.routes() as any
+        return this.router.routes() as any
     }
 
     public registerController(target: IController) {
@@ -86,8 +85,21 @@ export default class Koas {
         this.addServiceToDepGraph(target)
     }
 
-    public registerStaticProvider(name, target: any) {
-        this.depStorage[name] = target
+    public registerDao(target: IDao) {
+        this.addDaoToDepGraph(target)
+    }
+
+    public registerStaticProvider(name:string | undefined, target: any) {
+        // (target) | (null, target)
+        if(typeof target === 'object' && target == null) {
+            target = name
+            name = null
+        }
+        if(target instanceof Function) {
+            Provider(name, 'provider')(target)
+            this.addProviderToDepGraph(target, 'provider')
+        }
+        else this.depStorage[name] = target
     }
 
     public getTypeFromName(name: string) {
@@ -96,27 +108,41 @@ export default class Koas {
         return this.depKVMap[name]
     }
 
-    private autoRegsiterController(router:Router) {
-        const controllerList = glob.sync("./src/controller/**/*.ts")
-        controllerList.forEach(controllerPath => {
-            let controllers = require(controllerPath)
-            controllers = this.normAutoRegisterDependency(controllers)
-            const realController = controllers.reduce((list:Function[],controller:IController) => {
+    private autoRegisterController(router:Router) {
+        const handler = (controller: IController):void => {
+            const routes = this.getControllerMetadata(controller)
+            this.addControllerMetadataToRoute(routes, router)
+        }
+        this.getAutoRegisterProvider('controller', handler)
+    }
+
+    private autoRegisterService() {
+        this.getAutoRegisterProvider('service', this.registerService)
+    }
+
+    private autoRegisterDao() {
+        this.getAutoRegisterProvider('dao', this.registerDao)
+    }
+
+    private getAutoRegisterProvider(type: ProviderType, handler: AutoRegisterHandler) {
+        const unfiltedProviders =  glob.sync(`./src/${type}/**/*.ts`)
+        unfiltedProviders.forEach(servicePath => {
+            let unfiltedProvider = require(servicePath)
+            unfiltedProvider = this.normAutoRegisterDependency(unfiltedProvider)
+            const providers = unfiltedProvider.reduce((list:Function[], provider: IProvider) => {
                 let metadata
-                if((metadata = Reflect.getOwnMetadata(classMetadata, controller))) {
-                    if(!metadata.controller) return
-                    list.push(controller)
+                if((metadata = Reflect.getOwnMetadata(classMetadata, provider))) {
+                    if(!metadata[type]) return
+                    list.push(provider)
                 }
                 return list
             },[])
-            realController.forEach((controller:IController) => {
-                const routes = this.getControllerMetadata(controller)
-                this.addControllerMetadataToRoute(routes, router)
-            })
+            providers.forEach((provider:IProvider) => handler(provider))
         })
     }
 
     private normAutoRegisterDependency(dep: Object) {
+        if(!dep) return []
         if(isPlainObject(dep)) dep = [dep]
         else {
             const newDep = []
@@ -243,13 +269,22 @@ export default class Koas {
     }
 
     private addServiceToDepGraph(target: IService) {
+        this.addProviderToDepGraph(target, 'service')
+    }
+
+    private addDaoToDepGraph(target: IDao) {
+        this.addProviderToDepGraph(target, 'dao')
+    }
+
+    private addProviderToDepGraph(target: IProvider, type: string) {
         let metadata:IClassMetadata
         if((metadata = Reflect.getOwnMetadata(classMetadata, target))) {
-            const { service } = metadata
-            if(!service) return
-            const { names } = service
+            const info = metadata[type]
+            if(!info) return
+            const { names } = info
             const masterName = names[0]
-            names.forEach(name => {     
+            names.forEach(name => {    
+                if(name === masterName) return 
                 this.depMapTable[name] = masterName
             })
             
@@ -258,18 +293,7 @@ export default class Koas {
         }
     }
 
-    private getAutoRegisteredService() {
-        const unFiltedServicesList = glob.sync('./service/**/.ts')
-        unFiltedServicesList.forEach(unFiltedServicePath => {
-            let unFiltedServices = require(unFiltedServicePath)
-            unFiltedServices = this.normAutoRegisterDependency(unFiltedServices)
-            unFiltedServices.forEach(unFiltedService => {
-                this.addServiceToDepGraph(unFiltedService)
-            })
-        })
-    }
-
-    private collectDepBuildRequisiteDep(dependency: IDependency) {
+    private collectDepBuildRequisiteDep(dependency: IProvider) {
         const metadata: IDependencyMetadata = Reflect.getOwnMetadata(classMetadata, dependency)
         if(!metadata) return
         let { dependency: paramsDep } = metadata

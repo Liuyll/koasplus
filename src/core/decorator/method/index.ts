@@ -1,8 +1,6 @@
 import { isArray } from './../tools';
-import { IDependencyOrHandlerMetadata, IInjectOptions } from './../../types/method';
+import { IDependencyOrHandlerMetadata, IInjectOptions, classMetadata, HttpVerb } from './../../types';
 import { Context, Middleware as IMiddleware } from 'koa'
-import { classMetadata } from './../../types/class';
-import { HttpVerb } from '../../types'
 import { addPayloadToMetadata, AppendType } from '../tools'
 
 export const methodMetadata = Symbol('methodMetadata')
@@ -35,6 +33,10 @@ const PUT:IRouterDecorator = function(path: string): MethodDecorator {
 
 const DELETE:IRouterDecorator = function(path: string): MethodDecorator {
     return RoutePathDecorator(HttpVerb.DELETE, path)
+}
+
+function addRouteDecorator(method: string): IRouterDecorator {
+    return (path: string): MethodDecorator => RoutePathDecorator(method as any, path)
 }
 
 function addMiddlewareInRoute(middlewares: IMiddleware[]) {
@@ -126,6 +128,7 @@ export {
     POST,
     PUT,
     DELETE,
+    addRouteDecorator,
     Middleware
 }
 

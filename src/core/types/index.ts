@@ -6,9 +6,20 @@ export {
     IClassMetadata,
     IDependency,
     IService,
-    IDependencyMetadata
+    IProvider,
+    IDependencyMetadata,
+    IDao,
+    ProviderType,
 } from './class'
 
 export {
-    State
+    State,
+    IMethodMetadata,
+    IHandlerMetadata,
+    IConstructorMetadata,
+    IInjectType,
+    IInjectOptions,
+    IParamsDep,
+    IParamsDepType,
+    IDependencyOrHandlerMetadata,
 } from './method'

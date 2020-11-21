@@ -1,11 +1,14 @@
 import Koas from './src/core/server'
-import { GET, Controller, Inject, Service, Middleware, Params} from './src'
+import { GET, Controller, Inject, Service, Middleware, Params } from './src'
 
 @Service()
 class Srv4 {
     public value = 10
 }
 
+class Srv5 {
+    public value = 20
+}
 @Controller('')
 class Test {
     // @Inject()
@@ -27,8 +30,8 @@ class Srv1 {
     @Inject()
     public a: Srv4
 
-    constructor() {
-        console.log('Srv1 build')
+    constructor(@Inject('Srv5') st) {
+        console.log('Srv1 build,st:',st.value)
     }
 
     print() {
@@ -63,5 +66,6 @@ koas.registerService(Srv1)
 koas.registerService(Srv2)
 koas.registerService(Srv3)
 koas.registerService(Srv4)
+koas.registerStaticProvider(null, Srv5)
 koas.start(8080)
 console.log('success')
