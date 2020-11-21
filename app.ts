@@ -20,7 +20,7 @@ class Test {
     })
     @GET('test/:id')
     match(ctx,next, @Inject({name: 'Srv1'}) dep, @Params('id') id) {
-        ctx.body = `id:${id},depValue:${dep.value},propertyVal:${dep.print()}`
+        ctx.body = `id:${id},depValue:${dep.print()},propertyVal:${dep.print()}`
         next()
     }
 }
@@ -28,14 +28,14 @@ class Test {
 @Service()
 class Srv1 {
     @Inject()
-    public a: Srv4
+    b: Srv5
 
-    constructor(@Inject('Srv5') st) {
-        console.log('Srv1 build,st:',st.value)
+    constructor(@Inject('Srv5') st, @Inject() public a:Srv4) {
+        console.log('Srv1 build,st:',st.value, 'srv4.value:',this.a.value)
     }
 
     print() {
-        return this.a.value
+        return this.b.value
     }
     value = 10
 }
@@ -46,7 +46,7 @@ class Srv2 {
         console.log('Srv2 build ', 'srv1.value = ', srv1.value)
     }
 
-    public value = 10
+    public value = 50
 
     // test(@Inject('Srv1') srv1) {}
 }

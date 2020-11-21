@@ -1,5 +1,5 @@
 import { isPlainObject, isArray } from './../decorator/tools';
-import { methodMetadata } from './../decorator/method';
+import { methodMetadata, requestSymbol } from './../decorator/method';
 import { IHandlerMetadata } from './../types/method';
 import { classMetadata, IControllerMetadata, IController, IClassMetadata, IService, IDependencyMetadata, IProvider, IDao, ProviderType } from './../types';
 import Koa, { Middleware } from 'koa'
@@ -245,10 +245,9 @@ export default class Koas {
             this.depStorage[srv] = this.makeDependency(srv, false)
         })
         Object.values(this.depStorage).forEach(dep => this.injectProperties(dep))
-
     }
     
-    public makeDependency(srv: string, injectProperty:boolean = true) {
+    public makeDependency(srv: string, injectProperty:boolean = true, makeChain:Set<string> = new Set()) {
         const Srv = this.depKVMap[srv]
         const deps = this.depGraph[srv]
         const Deps = deps.reduce((sumDeps, dep) => {
@@ -256,15 +255,26 @@ export default class Koas {
             return sumDeps
         },[])
         const dependency = new Srv(...Deps)
-        if(injectProperty) this.injectProperties(dependency)
+        if(injectProperty) this.injectProperties(dependency, makeChain)
         return dependency
     }
 
-    public injectProperties(target: Object) {
+    public injectProperties(target: Object, makeChain:Set<string> = new Set()) {
         const needInjectProperties:IInjectedPropertyPayload = Reflect.getMetadata(classPrototypeMetadata, target)?.injectedProperty
         if(!needInjectProperties) return
-        Object.entries(needInjectProperties).forEach(([name, typename]) => {
-            target[name] = this.depStorage[typename]
+        Object.entries(needInjectProperties).forEach(([name, options]) => {
+            const typename = options.name
+            if(!options.new) target[name] = this.depStorage[typename]
+            else if(options.new === 'new') {
+                if(makeChain.has(typename)) throw Error(
+`Error: property inject occur circular inject.
+    please check whether use 'new' life circle cause circular inject, like a -> b, b -> a\n`)
+                makeChain.add(typename)
+                target[name] = this.makeDependency(options.name, true, makeChain)
+            } else if(options.new === 'request') {
+                throw Error(
+`Error: can't use request life in property inject\n`)
+            }
         })
     }
 

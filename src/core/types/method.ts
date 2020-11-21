@@ -23,7 +23,7 @@ export type IInjectType = 'provide' | 'param'
 export interface IInjectOptions {
     name ?: string
     // true | request | singleton
-    new ?: boolean | string
+    new ?: string
     type ?: IInjectType
 }
 

@@ -4,7 +4,7 @@ import { Context, Middleware as IMiddleware } from 'koa'
 import { addPayloadToMetadata, AppendType } from '../tools'
 
 export const methodMetadata = Symbol('methodMetadata')
-const requestSymbol = Symbol('request-dep-metadata')
+export const requestSymbol = Symbol('request-dep-metadata')
 interface IRouterDecorator {
     (path: string): MethodDecorator
 }
@@ -87,8 +87,8 @@ function wrapControllerInContainer(target: Object, handler: string, desc: TypedP
             const deps:[string, IInjectOptions][] = Object.entries(metadata.paramsDep)
             deps.forEach(([depIndex,depOption]) => {
                 if(depOption.type === 'provide') {
-                    if(!depOption.new) paramList[depIndex] = ctx._app.getDepStorage(depOption.name)
-                    else if(depOption.new === true) paramList[depIndex] = ctx._app.makeDependency(depOption.name)
+                    if(!depOption.new || depOption.new === 'singleton') paramList[depIndex] = ctx._app.getDepStorage(depOption.name)
+                    else if(depOption.new === 'new') paramList[depIndex] = ctx._app.makeDependency(depOption.name)
                     else if(depOption.new === 'request') {
                         let dep:Object
                         if((dep = (ctx as any)[requestSymbol])) return dep

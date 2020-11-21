@@ -1,8 +1,8 @@
 {
-  "name": "koas",
+  "name": "overkos",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "a node.js web frame which base DI/IOC container",
+  "main": "src/index.ts",
   "type": "module",
   "dependencies": {
     "@types/glob": "^7.1.3",
@@ -18,8 +18,8 @@
     "ts-node": "^9.0.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ts-node app.ts"
   },
-  "author": "",
+  "author": "liuyll",
   "license": "ISC"
 }

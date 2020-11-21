@@ -14,7 +14,7 @@ import {
 export const classPrototypeMetadata = Symbol('class-prototype-metadata')
 
 export interface IInjectedPropertyPayload {
-    [property: string]: string
+    [property: string]: IInjectOptions
 }
 
 const Inject = function(_args ?: string | IInjectOptions) {
@@ -23,14 +23,16 @@ const Inject = function(_args ?: string | IInjectOptions) {
     else args = _args
     
     return (target:Object, propertyKey:string, index ?: number) => {
+        let name = args.name
         // propertyDecorator
         if(index == undefined) {
-            const type:Function = Reflect.getMetadata("design:type", target, propertyKey)
-            const typeName:string = type.prototype.constructor.name
-            const injectedPropertyPayload:IInjectedPropertyPayload = {[propertyKey]: typeName}
+            if(!name) {
+                const type:Function = Reflect.getMetadata("design:type", target, propertyKey)
+                args.name = type.prototype.constructor.name
+            }
+            const injectedPropertyPayload:IInjectedPropertyPayload = {[propertyKey]: args}
             addInjectedPropertyToClassPrototype(target, injectedPropertyPayload)
         } else {
-            let name = args.name
             // constructor
             // priority than @Service, be case to cover by @Service decorator
             if(!name) {
