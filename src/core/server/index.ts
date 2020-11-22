@@ -1,5 +1,5 @@
 import { isPlainObject, isArray } from './../decorator/tools';
-import { methodMetadata, requestSymbol } from './../decorator/method';
+import { methodMetadata } from './../decorator/method';
 import { IHandlerMetadata } from './../types/method';
 import { classMetadata, IControllerMetadata, IController, IClassMetadata, IService, IDependencyMetadata, IProvider, IDao, ProviderType } from './../types';
 import Koa, { Middleware } from 'koa'
@@ -8,6 +8,8 @@ import Router from 'koa-router'
 import glob from 'glob'
 import 'reflect-metadata'
 import { Provider } from '../decorator/class';
+import bodyParser from 'koa-bodyparser'
+import Errors from '../../error'
 
 interface IRoutePayload {
     path: string,
@@ -48,6 +50,7 @@ export default class Koas {
         this.autoRegisterService()
         this.autoRegisterDao()
 
+        app.use(bodyParser())
         app.use(this.getRouter())
     }
 
@@ -238,9 +241,7 @@ export default class Koas {
         }
         
         const sort = toposort()
-        if(!sort) throw new Error(
-`Error: must be register dependency first beforehand.
-    please check  whether exist circular dependency or did't register dependency.\n`)
+        if(!sort) Errors(3)
         sort.forEach(srv => {
             this.depStorage[srv] = this.makeDependency(srv, false)
         })
@@ -266,15 +267,10 @@ export default class Koas {
             const typename = options.name
             if(!options.new) target[name] = this.depStorage[typename]
             else if(options.new === 'new') {
-                if(makeChain.has(typename)) throw Error(
-`Error: property inject occur circular inject.
-    please check whether use 'new' life circle cause circular inject, like a -> b, b -> a\n`)
+                if(makeChain.has(typename)) Errors(4)
                 makeChain.add(typename)
                 target[name] = this.makeDependency(options.name, true, makeChain)
-            } else if(options.new === 'request') {
-                throw Error(
-`Error: can't use request life in property inject\n`)
-            }
+            } else if(options.new === 'request') Errors(5)
         })
     }
 

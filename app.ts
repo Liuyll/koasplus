@@ -1,5 +1,5 @@
 import Koas from './src/core/server'
-import { GET, Controller, Inject, Service, Middleware, Params } from './src'
+import { GET, Controller, Inject, Service, Middleware, Params, NonNullable } from './src'
 
 @Service()
 class Srv4 {
@@ -19,7 +19,7 @@ class Test {
         next()
     })
     @GET('test/:id')
-    match(ctx,next, @Inject({name: 'Srv1'}) dep, @Params('id') id) {
+    match(ctx,next, @Inject({name: 'Srv1'}) dep, @Params('id') id, @NonNullable('qwe') test) {
         ctx.body = `id:${id},depValue:${dep.print()},propertyVal:${dep.print()}`
         next()
     }

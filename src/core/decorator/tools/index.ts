@@ -32,7 +32,7 @@ const iterable = (target:Object, type: Exclude<AppendType, 'cover'>):any=> {
 export const isPlainObject = (object: unknown):boolean => {
     return Object.prototype.toString.call(object) === "[object Object]"
 }
-export const isArray = <T>(object: unknown): object is Array<T> => {
+export const isArray = <T=any>(object: unknown): object is Array<T> => {
     return Array.isArray(object) && Object.prototype.toString.call(object) === "[object Array]"
 }
 
@@ -45,3 +45,9 @@ export const handlePathToRoute = (path: string | RegExp | undefined) => {
     } 
     return path
 }
+
+export const convertArray = (object: any) => {
+    if(!object) return []
+    else if(!isArray(object)) return [object]
+    return object
+} 

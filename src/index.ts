@@ -18,3 +18,9 @@ export {
     Inject,
     Params
 } from './core/decorator/param'
+
+export {
+    Verify,
+    NonNullable,
+    Email
+} from './core/decorator/param/validate'

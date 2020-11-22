@@ -1,7 +1,10 @@
+import { convertArray } from './../tools/index';
 import { isArray } from './../tools';
 import { IDependencyOrHandlerMetadata, IInjectOptions, classMetadata, HttpVerb } from './../../types';
 import { Context, Middleware as IMiddleware } from 'koa'
 import { addPayloadToMetadata, AppendType } from '../tools'
+import Joi from 'joi'
+import Errors from '../../../error'
 
 export const methodMetadata = Symbol('methodMetadata')
 export const requestSymbol = Symbol('request-dep-metadata')
@@ -96,6 +99,36 @@ function wrapControllerInContainer(target: Object, handler: string, desc: TypedP
                     }
                 }
                 else if(depOption.type === 'param') paramList[depIndex] = ctx.params[depOption.name]
+                else if(depOption.type === 'body') {
+                    const key = depOption.name
+                    if(!key) paramList[depIndex] = ctx.request.body
+                    else {
+                        let verify:any = depOption.verify
+                        if(verify) {
+                            if(verify === 'nonnull') 
+                                if(ctx.request.body[key] == undefined) Errors(2, [ctx.path, key, verify, `key:${key}'s value is null`])
+                            else {
+                                verify = Joi[depOption.verify]
+                                if(!verify) Errors(1, [ctx.path, key, depOption.verify])
+    
+                                const allow = convertArray(depOption.allow)
+                                const valid = convertArray(depOption.valid)
+                                const match = depOption.match
+                                if(!match) verify = verify().valid(...valid).allows(...allow)
+                                else {
+                                    if(!verify()[match]) Errors(7, [ctx.path, key, match])
+                                    verify = verify()[match]()
+                                }
+                                const value = ctx.request.body[key]
+                                let ret: string
+                                if((ret = verify.validate(value).error)) Errors(2, [ctx.path, key, depOption.verify, ret])
+                            }
+                        } else if(depOption.transform) {
+                            
+                        }
+                        paramList[depIndex] = ctx.request.body[key] 
+                    }
+                }
             })      
         }
         const _handler = () => oldHandler.apply(target, paramList)

@@ -6,7 +6,7 @@ import {
     addDepTypesToConstructorMetadata,
     getMethodParamTypes,
 } from '../method'
-
+import Errors from '../../../error'
 import {
     addPayloadToMetadata
 } from '../tools'
@@ -40,7 +40,7 @@ const Inject = function(_args ?: string | IInjectOptions) {
                 const type = paramsTypes[index]
                 name = type.prototype.constructor.name
                 const badCase = ['Object', 'Array', 'String', 'Number', 'Symbol', 'Function', 'BigInt']
-                if(badCase.indexOf(name) != -1) throw new Error('Error: you must provide Inject name or type, but you did not provide anyone.')
+                if(badCase.indexOf(name) != -1) Errors(6)
                 args.name = name
             }
             if(!propertyKey) {
@@ -64,13 +64,26 @@ const Params = (key: string):ParameterDecorator => {
     }
 }
 
+const Body = (key ?: string, options: Object = {}):ParameterDecorator => {
+    return (target:Object, propertyKey: string, index: number) => {
+        const payload:IInjectOptions = {type: 'body', name: key, ...options}
+        addDepNamesToMethodMetadata(target, propertyKey, String(index), payload)
+    }
+} 
+
 const addInjectedPropertyToClassPrototype = (target:Object, injectedPropertyPayload: IInjectedPropertyPayload) => {
     addPayloadToMetadata(target, null, 'injectedProperty', injectedPropertyPayload, classPrototypeMetadata, null, 'object')
 }
 
+const Transform = (key: string, method: string): ParameterDecorator => {
+    return Body(key, {transform: method})
+}
+
 export {
     Inject,
-    Params
+    Params,
+    Body,
+    Transform,
 }
 
 

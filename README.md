@@ -167,4 +167,15 @@ class Test {
 注意，为`property`注入时，不支持`request`生命周期。
 
 
+### 参数注入
+为方便开发,`overkos`提供了`Controller`里`handler`参数的一系列装饰器
 
+#### Body
+```
+Body(key ?: string)
+```
+`Body`装饰器获取`request`里`payload`的数据。
+
+当不传入参数时，会获取整个`payload`.
+
+#### Params
