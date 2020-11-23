@@ -178,4 +178,90 @@ Body(key ?: string)
 
 当不传入参数时，会获取整个`payload`.
 
+> 无需考虑`application/type`，如果你使用的是`koa`的话，框架会自动帮你引入`koa-parsebody`中间件做处理。
 #### Params
+```
+Params(key: string)
+```
+如果你使用的是匹配路由:`path/:id`，那么可以通过`Params`获取到参数的实际值。
+```
+@GET('test/:id')
+handler(ctx, next, @Params('id') id) 
+```
+
+### 参数验证
+只是获取`Body`里的数据依然还是需要后续处理，框架通过装饰器提供了一些验证方法
+> 注意，参数验证只处理`Body`里的数据
+#### NonNullable
+```
+NonNullable(key:string)
+```
+`NonNullable`跟`Body`修饰器基本一致，但它保证了获取的值不为`null`，否则会返回一个`500`错误。(当然，你可以通过框架提供的中间件定制抛出错误)
+
+#### Email
+```
+Email(key:string)
+```
+`Email`保证参数必须是邮箱格式。
+
+#### Verify
+`Verify`是框架提供的定制验证装饰器的方法，`overkos`的验证库采用的是`joi`。
+
+```
+interface IValidateOptions {
+    verify ?: string
+    allow ?: string | string[]
+    valid ?: string | string[]
+    match ?: string
+    matchParams ?: any[]
+}
+
+Verify = (key: string, method: string | IValidateOptions | Array<any> | RegExp, extra ?: any)
+```
+
+参数:
++ arg1: `body` key值
++ arg2: 
+    + string: 验证方法, 可以参考`joi`的几种验证类型。
+    + array: 有效的几个值，可以为不同类型
+
+一个简单的例子，创建一个匹配正则表达式的装饰器
+```
+const PatternPhone = (key: string) => 
+    Verify(key, /^1[0-9]{10}/)
+```
+
+### 参数装换
+`overkos`不仅提供参数的验证，还提供了快捷的转换功能。
+一个简单的转换例子
+```
+@GET('test')
+handler(ctx, next, @Int('id') id) => {
+    console.log(typeof id === 'number')
+} 
+```
+
+#### Int
+将字符串值转化为Int，若无法转换或为空值则抛出一个错误
+```
+Int(key: string, allowNull:boolean = false) 
+```
+如果你接受一个空值，可以传入第二个参数为`true`值。
+> 请注意，一个空值无法进行任何转换，它只会返回`undefined`
+
+#### Bool
+将`"false"` | `"0"` 值转化为`false`, 其他值转换为`true`
+```
+Bool(key: string, allowNull:boolean = true) 
+```
+> 需要注意的是，`undefined`和`null`都不会被进行任何转化，它会返回原值。如果你禁止`undefined`和`null`的传入，设置第二个参数为`false`
+
+#### Trim
+将字符串左右两边的空格去掉
+```
+Bool(key: string, allowNull:boolean = false) 
+```
+
+
+
+

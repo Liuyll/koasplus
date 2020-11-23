@@ -5,6 +5,7 @@ import { Context, Middleware as IMiddleware } from 'koa'
 import { addPayloadToMetadata, AppendType } from '../tools'
 import Joi from 'joi'
 import Errors from '../../../error'
+import validator from 'validator';
 
 export const methodMetadata = Symbol('methodMetadata')
 export const requestSymbol = Symbol('request-dep-metadata')
@@ -104,6 +105,7 @@ function wrapControllerInContainer(target: Object, handler: string, desc: TypedP
                     if(!key) paramList[depIndex] = ctx.request.body
                     else {
                         let verify:any = depOption.verify
+                        let value:any = ctx.request.body[key]
                         if(verify) {
                             if(verify === 'nonnull') 
                                 if(ctx.request.body[key] == undefined) Errors(2, [ctx.path, key, verify, `key:${key}'s value is null`])
@@ -117,16 +119,22 @@ function wrapControllerInContainer(target: Object, handler: string, desc: TypedP
                                 if(!match) verify = verify().valid(...valid).allows(...allow)
                                 else {
                                     if(!verify()[match]) Errors(7, [ctx.path, key, match])
-                                    verify = verify()[match]()
+                                    const params = depOption.matchParams
+                                    if(params) verify = verify()[match](...params)
+                                    else verify = verify()[match]()
                                 }
-                                const value = ctx.request.body[key]
                                 let ret: string
                                 if((ret = verify.validate(value).error)) Errors(2, [ctx.path, key, depOption.verify, ret])
                             }
-                        } else if(depOption.transform) {
-                            
+                        } 
+                        if(depOption.transform) {
+                            if(value) {
+                                let transform:Function
+                                if(!(transform = validator[depOption.transform])) Errors(8, [ctx.path, key, depOption.transform])
+                                value = transform(value)
+                            } 
                         }
-                        paramList[depIndex] = ctx.request.body[key] 
+                        paramList[depIndex] = value
                     }
                 }
             })      

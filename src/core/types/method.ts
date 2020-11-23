@@ -30,6 +30,7 @@ export interface IInjectOptions {
     allow ?: any[] | any
     match ?: string
     valid ?: any[] | any
+    matchParams ?: any[]
 }
 
 export interface IParamsDep {

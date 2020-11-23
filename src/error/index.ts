@@ -25,6 +25,10 @@ const InvalidValidateMatch = (path:string, key:string,match: string):string =>
 `path:${path} handler occur error:
     key:${key} validate match:${match} is not exist.\n`
 
+const InvalidTransform = (path:string, key:string,transform: string):string => 
+`path:${path} handler occur error:
+    key:${key} transform method:${transform} is not exist.\n`
+
 export default function Errors(order: number, args ?: string[]): never {
     let message: string
     switch(order) {
@@ -49,6 +53,10 @@ export default function Errors(order: number, args ?: string[]): never {
         case 7:
             message = InvalidValidateMatch(args[0], args[1], args[2])
             break
+        case 8:
+            message = InvalidTransform(args[0], args[1], args[2])
+            break
+
     }
     throw new Error(message)
 } 

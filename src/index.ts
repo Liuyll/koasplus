@@ -22,5 +22,8 @@ export {
 export {
     Verify,
     NonNullable,
-    Email
+    Email,
+    Int,
+    Bool,
+    Trim
 } from './core/decorator/param/validate'
