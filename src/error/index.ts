@@ -1,9 +1,9 @@
 const VerifyNotExist = (path: string,key:string,verifyMethod:string):string => 
-`path:${path} handler occur error:
+`path:${path}'s handler occur error:
     key:${key} verifyMethod:${verifyMethod} is not exist.\n`
 
 const VerifyFail = (path: string,key:string,verifyMethod:string, errors):string => 
-`path:${path} handler occur error:
+`path:${path}'s handler occur error:
     key:${key} isn't pass verifyMethod:${verifyMethod}.
     reason: ${errors}\n`
 
@@ -22,41 +22,61 @@ const ErrDependencyFlag = ():string =>
 `you must provide Injected dep's name or type, but you did not provide anyone.`
 
 const InvalidValidateMatch = (path:string, key:string,match: string):string => 
-`path:${path} handler occur error:
+`path:${path}'s handler occur error:
     key:${key} validate match:${match} is not exist.\n`
 
 const InvalidTransform = (path:string, key:string,transform: string):string => 
-`path:${path} handler occur error:
+`path:${path}'s handler occur error:
     key:${key} transform method:${transform} is not exist.\n`
 
 export default function Errors(order: number, args ?: string[]): never {
-    let message: string
+    throw new OverkosError(order, args)
+} 
+
+function makeErrorMessage(order: number, args ?: string[]):[string, string] {
+    let message: string, errorName: string
     switch(order) {
         case 1:
             message = VerifyNotExist(args[0], args[1], args[2])
+            errorName = 'VerifyNotExist'
             break
         case 2:
             message = VerifyFail(args[0], args[1], args[2], args[3])
+            errorName = 'VerifyFail'
             break
         case 3:
             message = CircularDependency()
+            errorName = 'CircularDependency'
             break
         case 4:
             message = PropertyInjectCircularDependency()
+            errorName = 'PropertyInjectCircularDependency'
             break
         case 5:
             message = PropertyInvalidLife()
+            errorName = 'PropertyInvalidLife'
             break
         case 6:
             message = ErrDependencyFlag()
+            errorName = 'ErrDependencyFlag'
             break
         case 7:
             message = InvalidValidateMatch(args[0], args[1], args[2])
+            errorName = 'InvalidValidateMatch'
             break
         case 8:
             message = InvalidTransform(args[0], args[1], args[2])
+            errorName = 'InvalidValidateMatch'
             break
-
     }
-    throw new Error(message)
-} 
+    errorName += 'Error'
+    return [message, errorName]
+}
+class OverkosError extends Error {
+    constructor(order: number, args ?: string[]) {
+        const [message, name] = makeErrorMessage(order, args)
+        super(message)
+        this.name = name
+        Error.captureStackTrace(this, OverkosError.constructor)
+    }
+}
