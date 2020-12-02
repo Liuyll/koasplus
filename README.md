@@ -1,6 +1,6 @@
 # overkos
 a node.js web frame which base DI/IOC container
-## overkoa是什么?
+## overkos是什么?
 `overkos`是一个DI/IOC框架, 它跟`nestjs`一样拥有充足的装饰器来自动管理你的类, 然而更加轻量.考虑清楚, 你是否需要`nodejs`去完成大量的后端工作,亦或者只是使用它作为`BFF`.如果只是需要作为`BFF`层,那么`overkos`肯定比`nestjs`更适合你.
 
 `overkos`的核心默认使用`koa`，但它本质上是提供了一个`DI/IOC`的容器，所以你可以为其他框架开发适配的接口。
@@ -259,7 +259,7 @@ Bool(key: string, allowNull:boolean = true)
 #### Trim
 将字符串左右两边的空格去掉
 ```
-Bool(key: string, allowNull:boolean = false) 
+Trim(key: string, allowNull:boolean = false) 
 ```
 
 
