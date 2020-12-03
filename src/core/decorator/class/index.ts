@@ -1,5 +1,5 @@
 import { handlePathToRoute } from './../tools/index';
-import { classMetadata } from './../../types';
+import { classMetadata, ClassConstructor } from './../../types';
 import { addPayloadToMetadata } from '../tools'
 
 function Controller(path: string):ClassDecorator {
@@ -19,23 +19,23 @@ function Provider(name ?: string, type = 'provider'):ClassDecorator {
     return (target:Function) => addClassToProviderStorage(target, name, type)
 }
 
-function StaticProvider(target:Function) {
+function StaticProvider(target:ClassConstructor) {
     addPayloadToClassMetadata(target, null, 'staticProvider', true)
 }
 
-function addBaseControllerMetadata(target:Function, basepath: string) {
+function addBaseControllerMetadata(target:ClassConstructor, basepath: string) {
     addPayloadToClassMetadata(target, 'controller', 'basepath', basepath)
 }
 
-function addControllerOptionMetadata(target:Function, options: object) {
+function addControllerOptionMetadata(target:ClassConstructor, options: object) {
     addPayloadToClassMetadata(target, 'controller', 'options', options)
 }
 
-const addPayloadToClassMetadata = (target:Function, innerKey:string, payloadKey: string, payload: any) => {
+const addPayloadToClassMetadata = (target:ClassConstructor, innerKey:string, payloadKey: string, payload: any) => {
     addPayloadToMetadata(target, innerKey, payloadKey, payload, classMetadata)
 }
 
-function addClassToProviderStorage(target:Function, name:string, type: string) {
+function addClassToProviderStorage(target:ClassConstructor, name:string, type: string) {
     const names = [target.prototype.constructor.name]
     if(name) names.push(name)
     addPayloadToClassMetadata(target, type, 'names', names)

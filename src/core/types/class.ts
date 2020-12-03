@@ -36,3 +36,6 @@ export interface IClassMetadata {
     dao ?: IDaoMetadata
     provider ?: IProviderMetadata
 }
+
+export type ClassInstance = Object
+export type ClassConstructor = Function

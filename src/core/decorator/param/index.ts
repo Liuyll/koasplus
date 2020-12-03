@@ -1,4 +1,4 @@
-import { IInjectOptions } from './../../types/method';
+import { IInjectOptions, ClassInstance } from './../../types';
 import { 
     addDepNamesToConstructorMetadata, 
     addDepTypesToMethodMetadata,
@@ -22,7 +22,7 @@ const Inject = function(_args ?: string | IInjectOptions) {
     if(typeof _args === 'string' || _args == undefined) args = {name: _args} as any as IInjectOptions
     else args = _args
     
-    return (target:Object, propertyKey:string, index ?: number) => {
+    return (target:ClassInstance, propertyKey:string, index ?: number) => {
         let name = args.name
         // propertyDecorator
         if(index == undefined) {
@@ -71,7 +71,7 @@ const Body = (key ?: string, options: Object = {}):ParameterDecorator => {
     }
 } 
 
-const addInjectedPropertyToClassPrototype = (target:Object, injectedPropertyPayload: IInjectedPropertyPayload) => {
+const addInjectedPropertyToClassPrototype = (target:ClassInstance, injectedPropertyPayload: IInjectedPropertyPayload) => {
     addPayloadToMetadata(target, null, 'injectedProperty', injectedPropertyPayload, classPrototypeMetadata, null, 'object')
 }
 

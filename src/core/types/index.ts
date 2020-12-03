@@ -10,6 +10,8 @@ export {
     IDependencyMetadata,
     IDao,
     ProviderType,
+    ClassInstance,
+    ClassConstructor,
 } from './class'
 
 export {

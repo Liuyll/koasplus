@@ -1,6 +1,7 @@
+import { ClassConstructor, ClassInstance } from './../../types/class';
 export type AppendType = 'cover' | 'array' | 'object'
 
-export function addPayloadToMetadata(target:Function | Object, innerKey:string, payloadKey: string, payload: any, metadataKey: string | symbol, propertyKey ?: string | symbol, appendType: AppendType = 'cover') {
+export function addPayloadToMetadata(target:ClassConstructor | ClassInstance, innerKey:string, payloadKey: string, payload: any, metadataKey: string | symbol, propertyKey ?: string | symbol, appendType: AppendType = 'cover') {
     let oldMetadata = propertyKey ? Reflect.getOwnMetadata(metadataKey, target, propertyKey) : Reflect.getOwnMetadata(metadataKey, target)
     if(!oldMetadata) oldMetadata = {}
     const metadata = { ...oldMetadata }    

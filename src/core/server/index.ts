@@ -1,7 +1,18 @@
 import { isPlainObject, isArray } from './../decorator/tools';
 import { methodMetadata } from './../decorator/method';
-import { IHandlerMetadata } from './../types/method';
-import { classMetadata, IControllerMetadata, IController, IClassMetadata, IService, IDependencyMetadata, IProvider, IDao, ProviderType } from './../types';
+import { 
+    classMetadata, 
+    IControllerMetadata, 
+    IController, 
+    IClassMetadata, 
+    IService, 
+    IDependencyMetadata, 
+    IProvider, 
+    IDao, 
+    ProviderType,
+    IHandlerMetadata,
+    ClassInstance,
+} from './../types';
 import Koa, { Middleware } from 'koa'
 import { classPrototypeMetadata, IInjectedPropertyPayload } from '../decorator/param'
 import Router from 'koa-router'
@@ -245,7 +256,7 @@ export default class Koas {
         sort.forEach(srv => {
             this.depStorage[srv] = this.makeDependency(srv, false)
         })
-        Object.values(this.depStorage).forEach(dep => this.injectProperties(dep))
+        Object.values(this.depStorage).forEach(dep => this.injectClassProperties(dep))
     }
     
     public makeDependency(srv: string, injectProperty:boolean = true, makeChain:Set<string> = new Set()) {
@@ -255,12 +266,12 @@ export default class Koas {
             sumDeps.push(this.depStorage[dep])
             return sumDeps
         },[])
-        const dependency = new Srv(...Deps)
-        if(injectProperty) this.injectProperties(dependency, makeChain)
-        return dependency
+        const dependencyInstance = new Srv(...Deps)
+        if(injectProperty) this.injectClassProperties(dependencyInstance, makeChain)
+        return dependencyInstance
     }
 
-    public injectProperties(target: Object, makeChain:Set<string> = new Set()) {
+    public injectClassProperties(target: ClassInstance, makeChain:Set<string> = new Set()) {
         const needInjectProperties:IInjectedPropertyPayload = Reflect.getMetadata(classPrototypeMetadata, target)?.injectedProperty
         if(!needInjectProperties) return
         Object.entries(needInjectProperties).forEach(([name, options]) => {

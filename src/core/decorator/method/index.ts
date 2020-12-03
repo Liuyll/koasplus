@@ -1,8 +1,13 @@
 import { convertArray } from './../tools/index';
-import { isArray } from './../tools';
-import { IDependencyOrHandlerMetadata, IInjectOptions, classMetadata, HttpVerb } from './../../types';
+import { 
+    IDependencyOrHandlerMetadata, 
+    IInjectOptions, 
+    classMetadata, 
+    HttpVerb, 
+    ClassInstance,
+} from './../../types';
 import { Context, Middleware as IMiddleware } from 'koa'
-import { addPayloadToMetadata, AppendType } from '../tools'
+import { addPayloadToMetadata, AppendType, isArray } from '../tools'
 import Joi from 'joi'
 import Errors from '../../../error'
 import validator from 'validator';
@@ -58,31 +63,31 @@ function RoutePathDecorator(httpVerb: HttpVerb, basepath: string | RegExp): Meth
     }
 }
 
-function addDepNamesToMethodMetadata(target:Object, propertyKey:string, index:string, option: IInjectOptions) {
+function addDepNamesToMethodMetadata(target: ClassInstance, propertyKey:string, index:string, option: IInjectOptions) {
     addPayloadToMetadata(target, null ,'paramsDep', {[index]: option}, methodMetadata, propertyKey, 'object')
 }
 
-function addDepTypesToMethodMetadata(target:Object, propertyKey:string, index:string) {
+function addDepTypesToMethodMetadata(target: ClassInstance, propertyKey:string, index:string) {
     const paramsTypes = getMethodParamTypes(target, propertyKey)
     addPayloadToMetadata(target, null , 'paramsDepType', {[index]: paramsTypes[index]}, methodMetadata, propertyKey, 'object')
 }
 
-function addDepNamesToConstructorMetadata(target:Object, name: string) {
+function addDepNamesToConstructorMetadata(target: ClassInstance, name: string) {
     addPayloadToMetadata(target, null , 'dependency', name, classMetadata , null, 'array')
 }
 
-function addDepTypesToConstructorMetadata(target:Object) {
+function addDepTypesToConstructorMetadata(target: ClassInstance) {
     const paramsTypes = getMethodParamTypes(target)
     addPayloadToMetadata(target, null, 'dependencyType', paramsTypes, classMetadata)
 }
 
-function addVerbToControllerMethod(target: Object, handler: string | symbol, path: string, verb:HttpVerb) {
+function addVerbToControllerMethod(target:  ClassInstance, handler: string | symbol, path: string, verb:HttpVerb) {
     const routeState = {verb, path}
     // prototype
     addPayloadToMethodMetadata(target, handler, null, 'routes', routeState, 'array')
 }
 
-function wrapControllerInContainer(target: Object, handler: string, desc: TypedPropertyDescriptor<Function>) {
+function wrapControllerInContainer(target:  ClassInstance, handler: string, desc: TypedPropertyDescriptor<Function>) {
     const oldHandler = desc.value
     desc.value = (ctx: Context, next: Function) => {
         const metadata:IDependencyOrHandlerMetadata = getPayloadFromMethodMetadata(target, handler)
@@ -147,11 +152,11 @@ function wrapControllerInContainer(target: Object, handler: string, desc: TypedP
     }
 }
 
-const addPayloadToMethodMetadata = (target:Object, propertyKey: string | symbol, innerKey: string, payloadKey: string, payload: any, type?: AppendType) => {
+const addPayloadToMethodMetadata = (target: ClassInstance, propertyKey: string | symbol, innerKey: string, payloadKey: string, payload: any, type?: AppendType) => {
     addPayloadToMetadata(target, innerKey, payloadKey, payload, methodMetadata, propertyKey, type)
 }
 
-const getPayloadFromMethodMetadata = (target:Object, propertyKey: string | symbol) => {
+const getPayloadFromMethodMetadata = (target: ClassInstance, propertyKey: string | symbol) => {
     return Reflect.getMetadata(methodMetadata, target, propertyKey)
 } 
 
