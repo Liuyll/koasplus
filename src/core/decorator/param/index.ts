@@ -1,4 +1,4 @@
-import { IInjectOptions, ClassInstance } from './../../types';
+import { IInjectOptions, ClassInstance, ClassConstructor } from './../../types';
 import { 
     addDepNamesToConstructorMetadata, 
     addDepTypesToMethodMetadata,
@@ -22,7 +22,7 @@ const Inject = function(_args ?: string | IInjectOptions) {
     if(typeof _args === 'string' || _args == undefined) args = {name: _args} as any as IInjectOptions
     else args = _args
     
-    return (target:ClassInstance, propertyKey:string, index ?: number) => {
+    return (target:ClassInstance | ClassConstructor, propertyKey:string, index ?: number) => {
         let name = args.name
         // propertyDecorator
         if(index == undefined) {
@@ -33,7 +33,6 @@ const Inject = function(_args ?: string | IInjectOptions) {
             const injectedPropertyPayload:IInjectedPropertyPayload = {[propertyKey]: args}
             addInjectedPropertyToClassPrototype(target, injectedPropertyPayload)
         } else {
-            // constructor
             // priority than @Service, be case to cover by @Service decorator
             if(!name) {
                 const paramsTypes:Function[] = getMethodParamTypes(target)
@@ -43,10 +42,13 @@ const Inject = function(_args ?: string | IInjectOptions) {
                 if(badCase.indexOf(name) != -1) Errors(6)
                 args.name = name
             }
+            // constructor
             if(!propertyKey) {
-                addDepNamesToConstructorMetadata(target, name)
-                // TODO: types是否需要保留
-                addDepTypesToConstructorMetadata(target)
+                if(target instanceof Function) {
+                    addDepNamesToConstructorMetadata(target, name)
+                    // TODO: types是否需要保留
+                    addDepTypesToConstructorMetadata(target)
+                }
             }
             else {
                 args.type = 'provide'

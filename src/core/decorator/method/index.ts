@@ -1,3 +1,4 @@
+import { ClassConstructor } from './../../types/class';
 import { convertArray } from './../tools/index';
 import { 
     IDependencyOrHandlerMetadata, 
@@ -72,7 +73,7 @@ function addDepTypesToMethodMetadata(target: ClassInstance, propertyKey:string, 
     addPayloadToMetadata(target, null , 'paramsDepType', {[index]: paramsTypes[index]}, methodMetadata, propertyKey, 'object')
 }
 
-function addDepNamesToConstructorMetadata(target: ClassInstance, name: string) {
+function addDepNamesToConstructorMetadata(target: ClassConstructor, name: string) {
     addPayloadToMetadata(target, null , 'dependency', name, classMetadata , null, 'array')
 }
 
