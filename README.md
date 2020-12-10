@@ -7,6 +7,10 @@ a node.js web frame which base DI/IOC container
 
 需要注意的是, `over-kos`的很多功能都需要`decorator`的支持，所以你必须使用`typescript`进行开发。
 
+## install
+```
+npm install overkos
+```
 ## 优势
 比起`koa`繁杂的操作,`overkos`能大幅度的提升你的工作效率.
 ```
