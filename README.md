@@ -27,6 +27,9 @@ handler(ctx, next) {
 + 快捷获取`context`上的变量
 + ......
 
+### cls
+另外一个很有用的地方是, `overkos`内置了一个`cls`(`continuation local storage`)以让你在任何地方访问当前`context`的自定义储存内容.
+
 ## 约定
 `overkos`采用了常见的`MVC`模式进行开发，它约定了几个目录。
 与你的应用根路径`app.ts`相对应的相对路径:
@@ -266,6 +269,46 @@ Bool(key: string, allowNull:boolean = true)
 Trim(key: string, allowNull:boolean = false) 
 ```
 
+
+### CLS
+`cls`让你在任何地方都可以访问到当前`request`的内容.
+
+#### clsContext
+`clsContext`是框架初始化的`cls`实例,
+你可以这样获得`clsContext`:
+```
+class Service {
+    @Inject('clsContext')
+    clsContext
+}
+```
+如果有些地方不方便以类封装, 框架也直接导出了它:
+```
+import { clsContext } from 'overkoa' 
+```
+
+框架内置了几个数据让你方便访问`oa`的原生`ctx`.
+
++ req
++ res
++ query
++ body
++ href
++ url
++ method
+
+#### get
+你可以通过`get`方法取得`cls`储存的数据
+```
+clsContext.get(key)
+```
+
+#### set
+你可以通过`set`方法储存数据至当前`context`
+```
+clsContext.set(key, data)
+```
+需要注意,`key`不要与框架提供的默认数据`key`值冲突.
 
 
 

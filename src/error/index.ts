@@ -1,6 +1,6 @@
 const VerifyNotExist = (path: string,key:string,verifyMethod:string):string => 
 `path:${path}'s handler occur error:
-    key:${key} verifyMethod:${verifyMethod} is not exist.\n`
+    key:${key} verifyMethod:${verifyMethod} is not Exist.\n`
 
 const VerifyFail = (path: string,key:string,verifyMethod:string, errors):string => 
 `path:${path}'s handler occur error:
@@ -23,7 +23,7 @@ const ErrDependencyFlag = ():string =>
 
 const InvalidValidateMatch = (path:string, key:string,match: string):string => 
 `path:${path}'s handler occur error:
-    key:${key} validate match:${match} is not exist.\n`
+    key:${key} validate match:${match} is not passwd.\n`
 
 const InvalidTransform = (path:string, key:string,transform: string):string => 
 `path:${path}'s handler occur error:

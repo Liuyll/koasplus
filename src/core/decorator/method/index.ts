@@ -12,6 +12,7 @@ import { addPayloadToMetadata, AppendType, isArray } from '../tools'
 import Joi from 'joi'
 import Errors from '../../../error'
 import validator from 'validator';
+import { clsContext } from '../../plugins/cls'
 
 export const methodMetadata = Symbol('methodMetadata')
 export const requestSymbol = Symbol('request-dep-metadata')
@@ -107,14 +108,16 @@ function wrapControllerInContainer(target:  ClassInstance, handler: string, desc
                 }
                 else if(depOption.type === 'param') paramList[depIndex] = ctx.params[depOption.name]
                 else if(depOption.type === 'body') {
+                    const requestType = clsContext.get("method")
                     const key = depOption.name
                     if(!key) paramList[depIndex] = ctx.request.body
                     else {
                         let verify:any = depOption.verify
                         let value:any = ctx.request.body[key]
                         if(verify) {
-                            if(verify === 'nonnull') 
-                                if(ctx.request.body[key] == undefined) Errors(2, [ctx.path, key, verify, `key:${key}'s value is null`])
+                            if(verify === 'nonnull') {
+                                if(getDataFromRequest(requestType, key, ctx) == undefined) Errors(2, [ctx.path, key, verify, `key:${key}'s value is null`])
+                            }
                             else {
                                 verify = Joi[depOption.verify]
                                 if(!verify) Errors(1, [ctx.path, key, depOption.verify])
@@ -166,6 +169,9 @@ const getMethodParamTypes = (target:Object | Function, propertyKey ?: string) =>
     if(propertyKey) return Reflect.getMetadata(paramMetadataKey, target, propertyKey)
     return Reflect.getOwnMetadata(paramMetadataKey, target)
 }
+
+const getDataFromRequest = (type, key:string, ctx) => 
+    type === 'GET' ? ctx.query[key] : ctx.request.body[key]
 
 const compose = (middlewares: Function[]) => 
     (ctx:Context, next:Function) => middlewares.reduceRight((next,middleware) => () => middleware(ctx, next), next)

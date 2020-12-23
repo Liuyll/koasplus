@@ -27,3 +27,7 @@ export {
     Bool,
     Trim
 } from './core/decorator/param/validate'
+
+export {
+    clsContext
+} from './core/plugins/cls'

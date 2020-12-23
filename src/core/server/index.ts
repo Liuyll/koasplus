@@ -19,8 +19,8 @@ import Router from 'koa-router'
 import glob from 'glob'
 import 'reflect-metadata'
 import { Provider } from '../decorator/class';
-import bodyParser from 'koa-bodyparser'
 import Errors from '../../error'
+import { initServer } from './initServer'
 
 interface IRoutePayload {
     path: string,
@@ -60,9 +60,8 @@ export default class Koas {
         this.autoRegisterController(this.router)
         this.autoRegisterService()
         this.autoRegisterDao()
-
-        app.use(bodyParser())
-        app.use(this.getRouter())
+        
+        initServer(app, this.getRouter())
     }
 
     start(port: number) {
@@ -274,13 +273,14 @@ export default class Koas {
     public injectClassProperties(target: ClassInstance, makeChain:Set<string> = new Set()) {
         const needInjectProperties:IInjectedPropertyPayload = Reflect.getMetadata(classPrototypeMetadata, target)?.injectedProperty
         if(!needInjectProperties) return
-        Object.entries(needInjectProperties).forEach(([name, options]) => {
+        Object.entries(needInjectProperties).forEach(([property, options]) => {
             const typename = options.name
-            if(!options.new) target[name] = this.depStorage[typename]
+            if(!options.new) target[property] = this.depStorage[typename]
             else if(options.new === 'new') {
                 if(makeChain.has(typename)) Errors(4)
                 makeChain.add(typename)
-                target[name] = this.makeDependency(options.name, true, makeChain)
+                if(typename === 'clsContext') target[property] = require('../plugins/cls').clsContext
+                else target[property] = this.makeDependency(options.name, true, makeChain)
             } else if(options.new === 'request') Errors(5)
         })
     }
