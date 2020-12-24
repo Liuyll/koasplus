@@ -1,5 +1,5 @@
 import Koas from './src/core/server'
-import { GET, Controller, Inject, Service, Middleware, Params, NonNullable } from './src'
+import { GET, Controller, Inject, Service, Middleware, Params, NonNullable, clsContext } from './src'
 
 @Service()
 class Srv4 {
@@ -9,21 +9,7 @@ class Srv4 {
 class Srv5 {
     public value = 20
 }
-@Controller('')
-class Test {
-    // @Inject()
-    // public a: Srv4
 
-    @Middleware((ctx,next) => {
-        console.log('middleware')
-        next()
-    })
-    @GET('test/:id')
-    match(ctx,next, @Inject({name: 'Srv1'}) dep, @Params('id') id, @NonNullable('qwe') test) {
-        ctx.body = `id:${id},depValue:${dep.print()},propertyVal:${dep.print()}`
-        next()
-    }
-}
 
 @Service()
 class Srv1 {
@@ -48,6 +34,9 @@ class Srv2 {
 
     public value = 50
 
+    go() {
+        return 'i am srv2'
+    }
     // test(@Inject('Srv1') srv1) {}
 }
 
@@ -58,6 +47,28 @@ class Srv3 {
     }
 }
 
+@Controller('')
+class Test {
+    @Inject("clsContext")
+    public clsContext
+
+    @Middleware((ctx,next) => {
+        console.log('middleware')
+        next()
+    })
+    @GET('test/:id')
+    match(ctx, next, @Inject() dep: Srv1, @Params('id') id, @NonNullable('qwe') test) {
+        ctx.body = `id:${id},depValue:${dep.print()},propertyVal:${dep.print()}`
+        next()
+    }
+
+    @GET('test1')
+    dog(ctx, next, @Inject() Srv2: Srv2) {
+        clsContext.get('logger').log("wa", "log")
+        ctx.body = Srv2.go()
+        next()
+    }
+}
 
 const koas = new Koas()
 

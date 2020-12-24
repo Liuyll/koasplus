@@ -29,7 +29,7 @@ const InvalidTransform = (path:string, key:string,transform: string):string =>
 `path:${path}'s handler occur error:
     key:${key} transform method:${transform} is not exist.\n`
 
-export default function Errors(order: number, args ?: string[]): never {
+function Errors(order: number, args ?: string[]): never {
     throw new OverkosError(order, args)
 } 
 
@@ -80,3 +80,5 @@ class OverkosError extends Error {
         Error.captureStackTrace(this, OverkosError.constructor)
     }
 }
+
+export default Errors

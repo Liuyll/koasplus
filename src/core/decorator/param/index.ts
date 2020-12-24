@@ -35,7 +35,7 @@ const Inject = function(_args ?: string | IInjectOptions) {
         } else {
             // priority than @Service, be case to cover by @Service decorator
             if(!name) {
-                const paramsTypes:Function[] = getMethodParamTypes(target)
+                const paramsTypes:Function[] = getMethodParamTypes(target, propertyKey)
                 const type = paramsTypes[index]
                 name = type.prototype.constructor.name
                 const badCase = ['Object', 'Array', 'String', 'Number', 'Symbol', 'Function', 'BigInt']

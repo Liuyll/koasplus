@@ -1,5 +1,5 @@
 import { isPlainObject, isArray } from './../decorator/tools';
-import { methodMetadata } from './../decorator/method';
+import { methodMetadata } from './../decorator/method/common';
 import { 
     classMetadata, 
     IControllerMetadata, 

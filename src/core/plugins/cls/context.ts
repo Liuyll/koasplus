@@ -25,7 +25,10 @@ class ClsContext {
                 }
             },
             destroy:(asyncId: number) => {
-                this.destroyContext(this.contextMap.get(asyncId)?.childrenExecuteId, asyncId)
+                let context:IContext
+                if((context = this.contextMap.get(asyncId))) {
+                    this.destroyContext(context.childrenExecuteId, asyncId)
+                }
             }
         }).enable()
     }
