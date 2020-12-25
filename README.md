@@ -11,6 +11,12 @@ a node.js web frame which base DI/IOC container
 ```
 npm install overkos
 ```
+
+此外，`overkos`提供了内置的脚手架用来创建与修改项目
+```
+npm install overkos-cli
+overkos create <appname>
+```
 ## 优势
 比起`koa`繁杂的操作,`overkos`能大幅度的提升你的工作效率.
 ```
