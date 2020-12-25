@@ -1,3 +1,5 @@
+import Overkos from './core/server'
+
 export {
     GET,
     POST,
@@ -27,6 +29,10 @@ export {
     Bool,
     Trim
 } from './core/decorator/param/validate'
+
+export {
+    Overkos
+}
 
 export {
     clsContext

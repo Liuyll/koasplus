@@ -21,6 +21,7 @@ import 'reflect-metadata'
 import { Provider } from '../decorator/class';
 import Errors from '../../error'
 import { initServer } from './initServer'
+import path from 'path'
 
 interface IRoutePayload {
     path: string,
@@ -41,7 +42,7 @@ interface IDepKVMap {
 }
 type AutoRegisterHandler = (provider:IProvider) => void
 
-export default class Koas {
+export default class Overkos {
     private app: Koa
     private router: Router
     private routeTable = []
@@ -122,11 +123,7 @@ export default class Koas {
     }
 
     private autoRegisterController(router:Router) {
-        const handler = (controller: IController):void => {
-            const routes = this.getControllerMetadata(controller)
-            this.addControllerMetadataToRoute(routes, router)
-        }
-        this.getAutoRegisterProvider('controller', handler)
+        this.getAutoRegisterProvider('controller', this.registerController)
     }
 
     private autoRegisterService() {
@@ -140,6 +137,7 @@ export default class Koas {
     private getAutoRegisterProvider(type: ProviderType, handler: AutoRegisterHandler) {
         const unfiltedProviders =  glob.sync(`./src/${type}/**/*.ts`)
         unfiltedProviders.forEach(servicePath => {
+            servicePath = path.resolve(servicePath)
             let unfiltedProvider = require(servicePath)
             unfiltedProvider = this.normAutoRegisterDependency(unfiltedProvider)
             const providers = unfiltedProvider.reduce((list:Function[], provider: IProvider) => {
@@ -150,13 +148,14 @@ export default class Koas {
                 }
                 return list
             },[])
-            providers.forEach((provider:IProvider) => handler(provider))
+            providers.forEach((provider:IProvider) => {
+                handler.call(this, provider)
+            })
         })
     }
 
     private normAutoRegisterDependency(dep: Object) {
         if(!dep) return []
-        if(isPlainObject(dep)) dep = [dep]
         else {
             const newDep = []
             for(let key in dep) newDep.push(dep[key])
