@@ -43,7 +43,8 @@ export const handlePathToRoute = (path: string | RegExp | undefined) => {
     else if(path instanceof RegExp) {
         path = path.toString()
         if(path.startsWith('^')) path = path[0] + path.slice(1)
-    } 
+    } else if(!path.startsWith('/')) path = '/' + path
+    
     return path
 }
 
