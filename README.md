@@ -14,8 +14,13 @@ npm install overkos
 
 此外，`overkos`提供了内置的脚手架用来创建与修改项目
 ```
-npm install overkos-cli
+npm install -g overkos-cli
 overkos create <appname>
+```
+
+如果你只是需要使用`overkos-cli`提供的创建项目的功能:
+```
+npx overkos-cli create <appname>
 ```
 ## 优势
 比起`koa`繁杂的操作,`overkos`能大幅度的提升你的工作效率.
