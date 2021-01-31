@@ -25,6 +25,12 @@ async function setLogger(ctx: Koa.Context, next) {
     await next()
 }
 
+async function extendCtxStore(ctx:Koa.Context, next) {
+    ctx.Set = clsContext.set
+    ctx.Get = clsContext.get
+    await next()   
+}
+
 async function protectContext(ctx: Koa.Context, next) {
     try {
         await next()
@@ -43,6 +49,7 @@ function protectServer() {
 
 function initServer(app: Koa, ...middlewares: Koa.Middleware[]) {
     protectServer()
+    app.use(extendCtxStore)
     app.use(protectContext)
     app.use(setContextInfo)
     app.use(setLogger)
